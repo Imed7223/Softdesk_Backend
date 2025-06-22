@@ -8,4 +8,4 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    
