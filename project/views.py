@@ -12,18 +12,15 @@ class IsAuthorContributor(permissions.BasePermission):
                 Contributor.objects.filter(project=obj, user=request.user).exists()
             )
         return False
-    
-
-from rest_framework import viewsets, permissions
-from .models import Project, Contributor
-from .serializers import ProjectSerializer, ContributorSerializer
-
+ 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Project.objects.filter(contributors__user=self.request.user).distinct()
+        if self.request.user.is_authenticated:
+            return Project.objects.filter(contributors__user=self.request.user).distinct()
+        return Project.objects.all()
 
     def perform_create(self, serializer):
         project = serializer.save(author_user=self.request.user)
@@ -31,8 +28,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 class ContributorViewSet(viewsets.ModelViewSet):
     serializer_class = ContributorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Contributor.objects.filter(project__contributors__user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            return Contributor.objects.filter(user=user)
+        return Contributor.objects.none()
 

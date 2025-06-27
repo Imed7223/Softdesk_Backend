@@ -10,5 +10,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ContributorSerializer(serializers.ModelSerializer):
-    model = Contributor
-    fields = ['id', 'user', 'project', 'permission', 'role']
+    class Meta:
+        model = Contributor
+        fields = ['id', 'user', 'project', 'permission', 'role']
