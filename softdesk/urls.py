@@ -32,6 +32,7 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'contributors', ContributorViewSet, basename='contributor')
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
