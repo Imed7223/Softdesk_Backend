@@ -43,19 +43,24 @@ class Contributor(models.Model):
     )
     permission = models.CharField(max_length=20, choices=PERMISSION_CHOICES, default='CONTRIBUTOR')
     role = models.CharField(max_length=128)
+    author_user = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='contributor_authors'
+    )
 
     class Meta:
-        unique_together = ('user', 'project')  # Un user ne peut contribuer qu'une fois à un projet
+        unique_together = ('user', 'project') # Un user ne peut contribuer qu'une fois à un projet
 
     def __str__(self):
         return f"{self.user.username} - {self.project.title}"
 
-
+ 
 class Issue(models.Model):
+
     PRIORITY_CHOICES = [('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]
     TAG_CHOICES = [('BUG', 'Bug'), ('FEATURE', 'Feature'), ('TASK', 'Task')]
     STATUS_CHOICES = [('TO_DO', 'To Do'), ('IN_PROGRESS', 'In Progress'), ('FINISHED', 'Finished')]
-
     title = models.CharField(max_length=255)
     description = models.TextField()
     tag = models.CharField(choices=TAG_CHOICES, max_length=20)

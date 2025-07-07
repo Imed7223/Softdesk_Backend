@@ -1,96 +1,80 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from .models import Project, Contributor
-from project.models import Issue, Comment
-from project.serializers import  IssueSerializer, CommentSerializer
+from django.shortcuts import get_object_or_404
+from .models import Project, Contributor, Issue, Comment
+from .serializers import ProjectSerializer, ContributorSerializer, IssueSerializer, CommentSerializer
 from authentication.models import User
-from .serializers import ProjectSerializer, ContributorSerializer
+from .permissions import IsAuthorOrReadOnly, IsContributor
 
 
-class IsAuthorContributor(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if isinstance(obj, Project):
-            return (
-                obj.author_user == request.user or
-                Contributor.objects.filter(project=obj, user=request.user).exists()
-            )
-        return False
- 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return Project.objects.filter(contributors__user=self.request.user).distinct()
-        return Project.objects.all()
+        return Project.objects.filter(contributors__user=self.request.user).distinct()
 
     def perform_create(self, serializer):
-        # On vérifie si l'utilisateur est connecté
-        user = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(author_user=user)
-
-    @action(detail=True, methods=['get', 'post'], url_path='issues')
-    def issues(self, request, pk=None):
-        project = self.get_object()
-
-        if request.method == 'GET':
-            issues = project.issues.all()
-            serializer = IssueSerializer(issues, many=True)
-            return Response(serializer.data)
-
-        elif request.method == 'POST':
-            if not request.user.is_authenticated:
-                return Response({"detail": "Authentification requise."}, status=status.HTTP_401_UNAUTHORIZED)
-
-            data = request.data.copy()
-            data['project'] = project.id
-            data['author_user'] = request.user.id
-
-            serializer = IssueSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            return Response(
-                {"detail": "Erreur de validation", "errors": serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    
-    @action(detail=True, methods=['get', 'post'], url_path=r'issues/(?P<issue_id>\d+)/comments')
-    def comments(self, request, pk=None, issue_id=None):
-        try:
-            project = self.get_object()
-            issue = project.issues.get(pk=issue_id)
-        except Issue.DoesNotExist:
-            return Response({"detail": "Issue non trouvée."}, status=status.HTTP_404_NOT_FOUND)
-
-        if request.method == 'GET':
-            comments = issue.comments.all()
-            serializer = CommentSerializer(comments, many=True)
-            return Response(serializer.data)
-
-        elif request.method == 'POST':
-            data = request.data.copy()
-            data['issue'] = issue.id
-            serializer = CommentSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save(author_user=request.user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            return Response(
-                {"detail": "Erreur de validation", "errors": serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.save(author_user=self.request.user)
 
 
 class ContributorViewSet(viewsets.ModelViewSet):
     serializer_class = ContributorSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated, IsContributor, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-        user = self.request.user
-        return Contributor.objects.all()
+        project_id = self.kwargs.get('project_id')
+        return Contributor.objects.filter(project__id=project_id)
+
+    def perform_create(self, serializer):
+        project_id = self.kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+        serializer.save(project=project, author_user=self.request.user)
+
+
+class IssueViewSet(viewsets.ModelViewSet):
+    serializer_class = IssueSerializer
+    permission_classes = [permissions.IsAuthenticated, IsContributor, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        project_id = self.kwargs.get('project_id')
+        return Issue.objects.select_related("project", "author_user", "assignee_user").filter(project__id=project_id)
+
+    def perform_create(self, serializer):
+        project_id = self.kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+        serializer.save(project=project, author_user=self.request.user)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Gère PATCH /issues/<id>/"""
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Gère DELETE /issues/<id>/"""
+        return super().destroy(request, *args, **kwargs)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsContributor, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        issue_id = self.kwargs.get('issue_id')
+        return Comment.objects.select_related("issue", "author_user").filter(issue__id=issue_id)
+
+    def perform_create(self, serializer):
+        issue_id = self.kwargs.get('issue_id')
+        issue = get_object_or_404(Issue, pk=issue_id)
+        serializer.save(issue=issue, author_user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Gère PUT /comments/<id>/"""
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Gère PATCH /comments/<id>/"""
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Gère DELETE /comments/<id>/"""
+        return super().destroy(request, *args, **kwargs)
