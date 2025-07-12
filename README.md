@@ -42,7 +42,7 @@ Softdesk_Backend/
 
 ### 1. Cloner le dépôt
 ```bash
-git clone https://github.com/votre-utilisateur/softdesk-backend.git
+git clone https://github.com/Imed7223/Softdesk_Backend.git
 cd softdesk-backend 
 
 ### 2. Installer les dépendances avec Pipenv
