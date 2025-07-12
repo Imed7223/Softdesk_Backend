@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 import uuid
 
+
 class Project(models.Model):
     TYPE_CHOICES = [
         ('BACK_END', 'Back-end'),
@@ -17,13 +18,14 @@ class Project(models.Model):
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='authored_projects',
-        null=True,  #  permet que ce soit None
-        blank=True  #  pour l’admin/Django Forms
+        null=True,  # permet que ce soit None
+        blank=True  # pour l’admin/Django Forms
     )
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
 
 class Contributor(models.Model):
     PERMISSION_CHOICES = [
@@ -50,12 +52,12 @@ class Contributor(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'project') # Un user ne peut contribuer qu'une fois à un projet
+        unique_together = ('user', 'project')  # Un user ne peut contribuer qu'une fois à un projet
 
     def __str__(self):
         return f"{self.user.username} - {self.project.title}"
 
- 
+
 class Issue(models.Model):
 
     PRIORITY_CHOICES = [('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')]
@@ -68,7 +70,11 @@ class Issue(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, max_length=20, default='TO_DO')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='issues')
     author_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    assignee_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assigned_issues', on_delete=models.CASCADE,default=1)
+    assignee_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='assigned_issues',
+        on_delete=models.CASCADE,
+        default=1)
     created_time = models.DateTimeField(auto_now_add=True)
 
 

@@ -10,7 +10,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'type', 'author_user', 'created_time']
         extra_kwargs = {
             'author_user': {'required': False, 'allow_null': True}
-        }   
+        }
+
 
 class ContributorSerializer(serializers.ModelSerializer):
     author_user = serializers.ReadOnlyField(source='author_user.username')

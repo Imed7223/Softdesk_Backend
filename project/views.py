@@ -1,10 +1,7 @@
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Project, Contributor, Issue, Comment
 from .serializers import ProjectSerializer, ContributorSerializer, IssueSerializer, CommentSerializer
-from authentication.models import User
 from .permissions import IsAuthorOrReadOnly, IsContributor
 from rest_framework.exceptions import PermissionDenied
 
@@ -24,7 +21,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if project.author_user != request.user:
             raise PermissionDenied("Seul l'auteur peut supprimer ce projet.")
         return super().destroy(request, *args, **kwargs)
-
 
 
 class ContributorViewSet(viewsets.ModelViewSet):
@@ -72,12 +68,13 @@ class IssueViewSet(viewsets.ModelViewSet):
         if issue.author_user != request.user:
             raise PermissionDenied("Seul l'auteur peut modifier cette issue.")
         return super().partial_update(request, *args, **kwargs)
-    
+
     def destroy(self, request, *args, **kwargs):
         issue = self.get_object()
         if issue.author_user != request.user:
             raise PermissionDenied("Seul l'auteur peut supprimer cette issue.")
         return super().destroy(request, *args, **kwargs)
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer

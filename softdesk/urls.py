@@ -35,10 +35,9 @@ router.register(r'projects', ProjectViewSet, basename='project')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    
     # Routes JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # Custom nested routes for contributors, issues, comments
-    path('api/', include('project.nested_urls')),  
+    path('api/', include('project.nested_urls')),
 ]

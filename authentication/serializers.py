@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -24,4 +25,3 @@ class UserSerializer(serializers.ModelSerializer):
             can_data_be_shared=validated_data.get('can_data_be_shared', False)
         )
         return user
-
