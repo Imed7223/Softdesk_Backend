@@ -4,14 +4,18 @@ Bienvenue sur le back-end de l'application **SoftDesk Support**, une API RESTful
 tâches et commentaires pour des équipes de développement. Ce projet est réalisé avec **Django** et **Django REST Framework**.
 
 ## 📁 Structure du projet
-softdesk/
+Softdesk_Backend/
 │
 ├── authentication/
 │   ├── models.py
 │   ├── serializers.py
 │   ├── views.py
 │   └── ...
-│
+├──project/
+│   ├── models.py
+│   ├── serializers.py
+│   ├── views.py
+│   └── ...
 ├── softdesk/
 │   ├── settings.py
 │   ├── urls.py
