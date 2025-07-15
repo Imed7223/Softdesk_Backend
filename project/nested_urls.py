@@ -1,5 +1,8 @@
 from django.urls import path
 from .views import ContributorViewSet, IssueViewSet, CommentViewSet
+from authentication.views import UserViewSet
+from rest_framework import routers
+
 
 contributor_list = ContributorViewSet.as_view({
     'get': 'list',
