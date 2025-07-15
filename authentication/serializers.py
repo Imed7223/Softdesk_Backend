@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         if value < 15:
             raise serializers.ValidationError("L'utilisateur doit avoir au moins 15 ans.")
         return value
-    
+
     def validate(self, data):
         if not data.get('can_data_be_shared', False):
             raise serializers.ValidationError("Le consentement sur le partage des données est requis (RGPD).")

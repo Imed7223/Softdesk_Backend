@@ -18,10 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from project.views import ProjectViewSet
-from project import nested_urls
 from authentication.views import UserViewSet
-from project.views import ProjectViewSet
-
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,

@@ -1,7 +1,5 @@
-from django.contrib.auth.management.commands.createsuperuser import Command as BaseCommand
-from django.core.management import CommandError
-from django.db.utils import IntegrityError
 from django.contrib.auth.management.commands.createsuperuser import Command as BaseCreateSuperUserCommand
+
 
 class Command(BaseCreateSuperUserCommand):
     def add_arguments(self, parser):
