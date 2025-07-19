@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from project.views import ProjectViewSet
-from authentication.views import UserViewSet
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -27,7 +26,6 @@ from rest_framework_simplejwt.views import (
 
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
 router.register(r'projects', ProjectViewSet, basename='project')
 
 

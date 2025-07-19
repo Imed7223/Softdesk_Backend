@@ -11,7 +11,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-        return Project.objects.filter(contributors__user=self.request.user).distinct()
+        user = self.request.user
+        # L'utilisateur ne voit que les projets auxquels il contribue
+        return Project.objects.filter(contributors__user=user).distinct()
 
     def perform_create(self, serializer):
         serializer.save(author_user=self.request.user)
@@ -21,7 +23,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if project.author_user != request.user:
             raise PermissionDenied("Seul l'auteur peut supprimer ce projet.")
         return super().destroy(request, *args, **kwargs)
-
+    
 
 class ContributorViewSet(viewsets.ModelViewSet):
     serializer_class = ContributorSerializer
@@ -61,6 +63,12 @@ class IssueViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project_id = self.kwargs.get('project_id')
         project = get_object_or_404(Project, pk=project_id)
+        user = serializer.validated_data['user']  # utilisateur qu'on veut ajouter
+
+        # Vérifie si cet utilisateur est déjà contributeur du projet
+        if Contributor.objects.filter(project=project, user=user).exists():
+            raise PermissionDenied("Cet utilisateur est déjà contributeur du projet.")
+
         serializer.save(project=project, author_user=self.request.user)
 
     def partial_update(self, request, *args, **kwargs):
@@ -87,13 +95,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         issue_id = self.kwargs.get('issue_id')
         issue = get_object_or_404(Issue, pk=issue_id)
-
-        # Vérifie si l'utilisateur a déjà commenté cette issue
-        already_exists = Comment.objects.filter(issue=issue, author_user=self.request.user).exists()
-        if already_exists:
-            raise PermissionDenied("Vous avez déjà posté un commentaire sur cette issue.")
-
         serializer.save(issue=issue, author_user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        comment = self.get_object()
+        if comment.author_user != request.user:
+            raise PermissionDenied("Seul l'auteur peut modifier ce commentaire.")
+        return super().update(request, *args, **kwargs)
+   
 
     def destroy(self, request, *args, **kwargs):
         """Gère DELETE /comments/<id>/ – Seul l'auteur peut supprimer"""

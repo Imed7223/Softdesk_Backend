@@ -23,6 +23,7 @@ issue_detail = IssueViewSet.as_view({
 
 comment_list = CommentViewSet.as_view({
     'get': 'list',
+    'put': 'update',
     'post': 'create'
 })
 comment_detail = CommentViewSet.as_view({
