@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def validate_age(self, value):
-        if value < 15:
+        if value is not None and value < 15:
             raise serializers.ValidationError("L'utilisateur doit avoir au moins 15 ans.")
         return value
 
@@ -25,8 +25,11 @@ class UserSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data.get('email'),
             password=validated_data['password'],
-            age=validated_data['age'],
+            age=validated_data.get('age'),
             can_be_contacted=validated_data.get('can_be_contacted', False),
-            can_data_be_shared=validated_data.get('can_data_be_shared', False)
+            can_data_be_shared=validated_data.get('can_data_be_shared', False),
+            is_active=True  # ⚠️ Nécessaire !
         )
+        user.set_password(validated_data['password'])  # Hash correct du mot de passe
+        user.save()
         return user

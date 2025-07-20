@@ -33,6 +33,13 @@ class Contributor(models.Model):
         ('CONTRIBUTOR', 'Contributor'),
     ]
 
+    ROLE_CHOICES = [
+        ('AUTHOR', 'Author'),
+        ('CONTRIBUTOR', 'Contributor'),
+        ('DEV', 'Developer'),
+        ('PO', 'Product Owner'),
+    ]
+
     user = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -44,7 +51,13 @@ class Contributor(models.Model):
         related_name='contributors'
     )
     permission = models.CharField(max_length=20, choices=PERMISSION_CHOICES, default='CONTRIBUTOR')
-    role = models.CharField(max_length=128)
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='CONTRIBUTOR'
+    )
+
     author_user = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -52,10 +65,10 @@ class Contributor(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'project')  # Un user ne peut contribuer qu'une fois à un projet
+        unique_together = ('user', 'project')
 
     def __str__(self):
-        return f"{self.user.username} - {self.project.title}"
+        return f"{self.user.username} - {self.project.title} ({self.get_role_display()})"
 
 
 class Issue(models.Model):

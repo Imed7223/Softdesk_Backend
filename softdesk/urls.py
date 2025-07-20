@@ -24,18 +24,21 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-
 router = routers.DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('authentication.urls')),
-    path('api/', include(router.urls)),
-    # Routes JWT
+    # Utilisateurs : inscription et "me"
+    path('api/', include('authentication.urls')),
+
+    # Endpoints JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # Custom nested routes for contributors, issues, comments
+
+    # Projets de base (GET /api/projects/)
+    path('api/', include(router.urls)),
+
+    # Nested endpoints : contributors, issues, comments
     path('api/', include('project.nested_urls')),
 ]
